@@ -1,10 +1,10 @@
 rm(list=ls())
 fitness<-read.csv("D:/fitness.csv",header=T)
 sum(is.na(fitness)==TRUE)
-fitness<-na.omit(fitness)#È±Ê§ÖµµÄÌî²¹
+fitness<-na.omit(fitness)#ç¼ºå¤±å€¼çš„å¡«è¡¥
 summary(fitness)
 
-fitness<-data.frame(scale(fitness))#±ê×¼»¯
+fitness<-data.frame(scale(fitness))#æ ‡å‡†åŒ–
 na<-c(colnames(fitness))
 boxplot(fitness$Age,fitness$Weight,fitness$Oxygen,fitness$RunTime,fitness$RestPulse,fitness$RunPulse,fitness$MaxPulse,main="Box plot",names = na)
 outlier_location <- sapply(fitness,function(X){which(X%in%boxplot.stats(X)$out)})
@@ -14,7 +14,7 @@ boxplot(fitness$Age,fitness$Weight,fitness$Oxygen,fitness$RunTime,fitness$RestPu
 fit1<-lm(Oxygen~.,fitness)
 #summary(fit1)
 e<-resid(fit1)
-plot(e,main = '²Ğ²îÉ¢µãÍ¼',ylab = '²Ğ²î')
+plot(e,main = 'æ®‹å·®æ•£ç‚¹å›¾',ylab = 'æ®‹å·®')
 abline(h=0)
 library(car)
 ncvTest(fit1)
@@ -49,20 +49,14 @@ coef <- coef.lars(la,mode="step",s=4)
 coef
 predict(la,data.frame(Age=0,Weight=0,Runtime=0,RestPulse=0,RunPulse=0,MaxPulse=0),s=4)
 
-#Áë»Ø¹éÄâºÏ
+#å²­å›å½’æ‹Ÿåˆ
 Oxygen_ridge<--0.08322-0.14706*fitness$Age-0.62220*fitness$RunTime-0.22226*fitness$RunPulse
-plot(fitness$Oxygen, type="o",pch=0, col="red", main="Áë»Ø¹é", ylab="Oxyfen",lwd=2)
+plot(fitness$Oxygen, type="o",pch=0, col="red", main="å²­å›å½’", ylab="Oxyfen",lwd=2)
 lines(Oxygen_ridge,type="o",pch=15,col="blue",lwd=2)
-legend("topright", legend=c("ÕæÊµÖµ","ÄâºÏÖµ"),pch=c(0,15), col=c("red","blue"), bty="n", lty=1,lwd=2)
-#Lasso»Ø¹éÄâºÏ
+legend("topright", legend=c("çœŸå®å€¼","æ‹Ÿåˆå€¼"),pch=c(0,15), col=c("red","blue"), bty="n", lty=1,lwd=2)
+#Lassoå›å½’æ‹Ÿåˆ
 Oxygen_lasso <- predict(la,x,s=4)$fit
-plot(fitness$Oxygen, type="o",pch=0, col="red", main="Lasso»Ø¹é", ylab="Oxyfen",lwd=2)
+plot(fitness$Oxygen, type="o",pch=0, col="red", main="Lassoå›å½’", ylab="Oxyfen",lwd=2)
 lines(Oxygen_lasso,type="o",pch=15,col="blue",lwd=2)
-legend("topright", legend=c("ÕæÊµÖµ","ÄâºÏÖµ"),pch=c(0,15), col=c("red","blue"), bty="n", lty=1,lwd=2)
-
-#fitness_raw <- read.csv("D:/fitness.csv",header=T)
-#fitness_mean <- apply(fitness_raw,2,mean)
-#fitness_sd <- apply(fitness_raw,2,sd)
-#fitness_scale <- data.frame(scale(fitness_raw))#±ê×¼»¯
-#fitness_com <- t(t(fitness_scale)+fitness_mean)*fitness_sd
+legend("topright", legend=c("çœŸå®å€¼","æ‹Ÿåˆå€¼"),pch=c(0,15), col=c("red","blue"), bty="n", lty=1,lwd=2)
 
