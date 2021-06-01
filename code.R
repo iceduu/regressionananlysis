@@ -1,0 +1,219 @@
+#前进法
+forward_ice <- function(data_input, sig)
+{
+  #前进法
+  len<-length(data_input)-1
+  observation<-lengths(data_input[,1])
+  index=seq(0,0,length=len)
+  variable=matrix(seq(0,0,length=len*observation),observation,len)
+  y=data.frame(data_input[,len+1],nrow=observation)[,1]
+  flag=0
+  while(flag<sig)
+  {
+    i=1
+    min=1
+    while(i<=len)#测试哪一个最显著，并获得相应的索引
+    {
+      if(index[i]==0)
+      {
+        index[i]=1
+        k=1
+        while(k<=len)#记录目前参与回归的变量
+        {
+          a<-data.frame(index[k]*data_input[,k],nrow=observation)
+          for(j in 1:observation) variable[j,k]<-a[j,1]
+          k=k+1
+        }
+        fit<-lm(y~variable[,1:len])#回归
+        temp<-summary(fit)
+        j=0
+        k=0
+        while(k<i)
+        {
+          k=k+1
+          if(index[k]!=0)
+          {
+            j=j+1
+          }
+        }
+        p_value<-temp$coefficients[j+1,4]
+        if(p_value<min)
+        {
+          min=p_value
+          location_e=i
+        }
+        index[i]=0
+      }
+      i=i+1
+    }
+    #当显著性水平满足条件时，引入一个变量
+    if(min<sig)
+    {
+      index[location_e]=1
+    }
+    flag=min
+  }
+  k=1
+  while(k<=len)#记录目前参与回归的变量
+  {
+    a<-data.frame(index[k]*data_input[,k],nrow=observation)
+    for(j in 1:observation) variable[j,k]<-a[j,1]
+    k=k+1
+  }
+  fit<-lm(data$y~variable[,1:len])
+  temp<-summary(fit)
+  return(temp)
+}
+
+#后退法
+backward_ice <- function(data_input, sig)
+{
+  len<-length(data_input)-1
+  observation<-lengths(data_input[,1])
+  index=seq(1,1,length=len)
+  variable=matrix(seq(0,0,length=len*observation),observation,len)
+  y=data.frame(data_input[,len+1],nrow=observation)[,1]
+  flag=1#初始化flag
+  while(flag>sig)
+  {
+    i=1
+    while(i<=len)#记录目前参与回归的变量
+    {
+      a<-data.frame(index[i]*data_input[,i],nrow=observation)
+      for(j in 1:observation) variable[j,i]<-a[j,1]
+      i=i+1
+    }
+    fit<-lm(y~variable[,1:len])#回归
+    temp<-summary(fit)
+    length=length(temp$coefficients[,4])
+    p_value<-temp$coefficients[2:length,4]
+    flag=max(p_value)#取t检验对应最大值
+    #flag
+    if(flag>sig)#判断是否大于显著水平
+    {
+      j=0
+      location=max.col(t(p_value))#获得对应变量的相应位置
+      while(location>0)
+      {
+        j=j+1
+        if(index[j]!=0) location=location-1
+      }
+      index[j]=0#删除变量
+    }
+  }
+  i=1
+  while(i<=len)#记录目前参与回归的变量
+  {
+    a<-data.frame(index[i]*data_input[,i],nrow=observation)
+    for(j in 1:observation) variable[j,i]<-a[j,1]
+    i=i+1
+  }
+  fit<-lm(data$y~variable[,1:len])
+  temp<-summary(fit)
+  return(temp)
+}
+
+#逐步回归法
+both_ice <- function(data_input, enter, out)
+{
+  len<-length(data_input)-1
+  observation<-lengths(data_input[,1])
+  index=seq(0,0,length=len)
+  variable=matrix(seq(0,0,length=len*observation),observation,len)
+  y=data.frame(data_input[,len+1],nrow=observation)[,1]
+  flag1=0
+  #前进法
+  while(flag1<enter)#严进
+  {
+    i=1
+    min=1
+    while(i<=len)#测试哪一个最显著，并获得相应的索引
+    {
+      if(index[i]==0)
+      {
+        index[i]=1
+        k=1
+        while(k<=len)#记录目前参与回归的变量
+        {
+          a<-data.frame(index[k]*data_input[,k],nrow=observation)
+          for(j in 1:observation) variable[j,k]<-a[j,1]
+          k=k+1
+        }
+        fit<-lm(y~variable[,1:len])#回归
+        temp<-summary(fit)
+        j=0
+        k=0
+        while(k<i)
+        {
+          k=k+1
+          if(index[k]!=0)
+          {
+            j=j+1
+          }
+        }
+        p_value<-temp$coefficients[j+1,4]
+        if(p_value<min)
+        {
+          min=p_value
+          location_e=i
+        }
+        index[i]=0
+      }
+      i=i+1
+    }
+    #当显著性水平满足条件时，引入一个变量
+    if(min<enter)
+    {
+      index[location_e]=1
+    }
+    flag1=min
+    #后退法
+    #引入变量后进行后退，将显著性差的变量剔除（后退法）
+    flag2=1
+    i=0
+    while(flag2>out)
+    {
+      k=1
+      while(k<=len)#记录目前参与回归的变量
+      {
+        a<-data.frame(index[k]*data_input[,k],nrow=observation)
+        for(j in 1:observation) variable[j,k]<-a[j,1]
+        k=k+1
+      }
+      fit<-lm(y~variable[,1:len])#回归
+      temp<-summary(fit)
+      length=length(temp$coefficients[,4])
+      p_value<-temp$coefficients[2:length,4]
+      flag2=max(p_value)
+      if(flag2>out)#宽出
+      {
+        j=0
+        location=max.col(t(p_value))
+        while(location>0)
+        {
+          j=j+1
+          if(index[j]!=0) location=location-1
+        }
+        index[j]=0
+      }
+    }
+  }
+  k=1
+  while(k<=len)#记录目前参与回归的变量
+  {
+    a<-data.frame(index[k]*data_input[,k],nrow=observation)
+    for(j in 1:observation) variable[j,k]<-a[j,1]
+    k=k+1
+  }
+  fit<-lm(y~variable[,1:len])#回归
+  temp<-summary(fit)
+  return(temp)
+}
+  
+library(readxl)
+setwd('D:/2020秋/应用回归分析/代码汇报')
+data<-read_xlsx("ex9.xlsx")
+forward_ice(data,0.05)
+backward_ice(data,0.1)
+both_ice(data,0.05,0.1)
+
