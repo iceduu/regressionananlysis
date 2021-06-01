@@ -14,4 +14,4 @@ code_fitness.R,fitness.csv,回归分析大作业.pdf
 该代码根据逐步回归原理编写，由于作业提交及汇报匆忙，代码不免存在冗余及错误，同时汇报PPT中未将实现效果与R中的step()函数实现结果对比。本部分代码仅供参考，待有机会再作补充。
 
 **对应文件：**
-code_fitness.R,fitness.csv,回归分析大作业.pdf
+code_step.R,ex9.xlsx,汇报.pdf
